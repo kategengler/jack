@@ -53,4 +53,29 @@ describe('Integration with Qunit',{
         window.globalFunction = null;
         window.ok = null;
     }
+    ,
+    'Should report all met expectations by calling ok': function() {
+        var messages = [];
+        var called = 0;
+      	window.QUnit = "";
+		window.ok = function(bool, message2) {
+			called++;
+			messages.push(message2);
+		};
+        window.globalFunction = function() {};
+        window.globalFunctionTwo = function() {};
+
+        jack(function() {
+           jack.expect("globalFunction").once();
+           jack.expect("globalFunctionTwo").once();
+            globalFunction();
+            globalFunctionTwo();
+        });
+
+        value_of(called).should_be(2);
+        value_of(messages[0]).should_be("Expectation: globalFunction() expected exactly 1 time, called 1 time");
+        value_of(messages[1]).should_be("Expectation: globalFunctionTwo() expected exactly 1 time, called 1 time");
+        window.globalFunction = null;
+        window.ok = null;
+    }
 });

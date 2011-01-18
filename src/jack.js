@@ -89,15 +89,20 @@ function jack() {} // This needs to be here to make error reporting work correct
 			}
 			publicApi.expect = oldExpect;
 		}
-		function after() {
-			var reports = getTextReports();
-			resetGrabs();
-			if(reports.failures.length > 0) {
-				environment.reportFailure(reports.failures[0]);
+        function recordResults(){
+            var reports = getTextReports();
+           	if(reports.failures.length > 0) {
+                environment.reportFailure(reports.failures[0]);
 			}
             if(reports.successes.length > 0 ){
-                environment.reportSuccess(reports.successes[0])
+                for(var i=0; i < reports.successes.length; i++){
+                    environment.reportSuccess(reports.successes[i]);
+                }
             }
+        }
+		function after() {
+            recordResults();
+			resetGrabs();
 		}
 		function getTextReports() {
 			var allReports = {successes: [], failures: []};
