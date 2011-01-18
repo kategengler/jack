@@ -92,29 +92,38 @@ function jack() {} // This needs to be here to make error reporting work correct
 		function after() {
 			var reports = getTextReports();
 			resetGrabs();
-			if(reports.length > 0) {
-				environment.report(reports[0]);
+			if(reports.failures.length > 0) {
+				environment.reportFailure(reports.failures[0]);
 			}
+            if(reports.successes.length > 0 ){
+                environment.reportSuccess(reports.successes[0])
+            }
 		}
 		function getTextReports() {
-			var failedReports = [];
+			var allReports = {successes: [], failures: []};
 			for(var name in functionGrabs) {
 				var reports = functionGrabs[name].reportAll(name);
 				for(var i=0; i<reports.length; i++) {
 					if(reports[i].fail) {
-						failedReports.push(reports[i].message);
+						allReports.failures.push(reports[i].message);
 					}
+                    else {
+                        allReports.successes.push(reports[i].message);
+                    }
 				}
 			}
 			for(var name in objectGrabs) {
 				var reports = objectGrabs[name].report(name);
 				for(var i=0; i<reports.length; i++) {
 					if(reports[i].fail) {
-						failedReports.push(reports[i].message);
+						allReports.failures.push(reports[i].message);
 					}
+                    else {
+                        allReports.successes.push(reports[i].message);
+                    }
 				}
 			}
-			return failedReports;
+			return allReports;
 		}
 		function grab() {
 			if("object" == typeof arguments[0] && "string" == typeof arguments[1]) {
@@ -362,6 +371,9 @@ function jack() {} // This needs to be here to make error reporting work correct
 			if(report.fail) {
 				report.message = "Expectation failed: " + specification.describe(fullName);
 			}
+            else {
+                report.message = "Expectation: " + specification.describe(fullName);
+            }
 			return report;
 		}
 		function generateReportMessage(report, fullName, argumentsDisplay) {
@@ -453,7 +465,8 @@ function jack() {} // This needs to be here to make error reporting work correct
 			'isQunit': isQunit,
 			'isJsTestDriver': isJsTestDriver,
 			'isYuiTest': isYuiTest,
-			'report': report,
+			'reportFailure': reportFailure,
+            'reportSuccess': reportSuccess,
 			'disableReporting': function() { reportingEnabled = false; },
 			'enableReporting': function() { reportingEnabled = true; },
 			'reset': function() {}
@@ -477,7 +490,7 @@ function jack() {} // This needs to be here to make error reporting work correct
 			var y = window.YAHOO;
 			return y != null && y.tool != null && y.tool.TestCase != null;
 		}
-		function report(message) {
+		function reportFailure(message) {
 			if(!reportingEnabled) { return; }
 			if(isYuiTest()) {
 				YAHOO.util.Assert.fail(message);
@@ -491,6 +504,12 @@ function jack() {} // This needs to be here to make error reporting work correct
 				throw new Error(message);
 			}
 		}
+        function reportSuccess(message) {
+            if(!reportingEnabled) { return; }
+            if(isQunit()){
+                ok(true, message);
+            }
+        }
 	}
 
 	/**
